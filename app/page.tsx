@@ -92,7 +92,7 @@ export default function ClientPortal() {
       await addDoc(collection(db, "tickets"), newTicket);
 
       await sendEmailNotification({
-        to_email: "bida23-199@thuto.bac.ac.bw",
+        to_email: "YOUR_IT_EMAIL_HERE",
         to_name: "ICT Department",
         from_name: formData.fullName,
         issue_type: formData.issueType,
@@ -121,100 +121,158 @@ export default function ClientPortal() {
     }
   }
 
+  const recentTickets = myTickets.slice(0, 3);
+
   return (
-    <main className="min-h-screen bg-slate-100 pb-24">
-      {/* Mobile App Header */}
-      <div className="bg-slate-950 text-white px-5 py-5 flex items-center justify-between shadow-lg sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <button className="text-3xl">☰</button>
+    <main className="min-h-screen bg-slate-50 pb-24">
+      {/* Top Mobile App Header */}
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 to-blue-950 text-white px-5 py-5 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowForm(false)}
+              className="text-3xl leading-none"
+            >
+              ☰
+            </button>
 
-          <div>
-            <h1 className="text-lg font-bold">ICT Support Portal</h1>
-            <p className="text-xs text-slate-300">MYGA Service Desk</p>
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-11 rounded-b-2xl rounded-t-md border-2 border-yellow-500 flex flex-col items-center justify-center text-yellow-400 text-xs font-bold">
+                <span className="text-lg">⚖</span>
+                <span>MYGA</span>
+              </div>
+
+              <div>
+                <h1 className="text-xl font-extrabold tracking-tight">
+                  ICT Support Portal
+                </h1>
+                <p className="text-xs text-slate-300">Service Desk</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <span className="text-3xl">🔔</span>
+
+              {myTickets.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                  {myTickets.length}
+                </span>
+              )}
+            </div>
+
+            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg shadow-lg">
+              {username ? username.charAt(0).toUpperCase() : "U"}
+            </div>
           </div>
         </div>
+      </header>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <span className="text-2xl">🔔</span>
-            {myTickets.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">
-                {myTickets.length}
-              </span>
-            )}
-          </div>
-
-          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold">
-            {username ? username.charAt(0).toUpperCase() : "U"}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-5 max-w-5xl mx-auto">
+      <section className="px-4 py-5 max-w-6xl mx-auto">
         {/* Hero Card */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-900 text-white rounded-3xl p-6 shadow-xl">
-          <p className="text-lg font-semibold">Welcome, {username} 👋</p>
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-950 text-white rounded-[28px] p-6 shadow-2xl overflow-hidden relative">
+          <div className="absolute right-4 top-10 hidden sm:block opacity-20 text-9xl">
+            ⚙️
+          </div>
 
-          <h2 className="text-4xl font-extrabold mt-4 leading-tight">
-            How can we help you today?
-          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center relative z-10">
+            <div>
+              <p className="text-lg font-semibold">
+                Welcome, {username} 👋
+              </p>
 
-          <p className="text-blue-100 mt-4 text-lg">
-            Log ICT support issues and track feedback from the ICT Department.
-          </p>
+              <h2 className="text-4xl md:text-5xl font-black mt-4 leading-tight">
+                How can we help you today?
+              </h2>
+
+              <p className="text-blue-100 mt-4 text-lg leading-relaxed">
+                Log ICT support issues and track feedback from the ICT
+                Department.
+              </p>
+            </div>
+
+            <div className="hidden md:flex justify-center">
+              <div className="relative">
+                <div className="w-48 h-32 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center">
+                  <div className="w-32 h-20 bg-white rounded-xl shadow-lg flex items-center justify-center text-blue-700 text-5xl">
+                    🖥️
+                  </div>
+                </div>
+                <div className="absolute -right-6 top-12 bg-white text-blue-700 rounded-2xl px-4 py-3 shadow-xl">
+                  💬
+                </div>
+              </div>
+            </div>
+          </div>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="mt-6 w-full bg-white text-blue-700 py-4 rounded-2xl font-bold shadow-md"
+            className="relative z-10 mt-7 w-full bg-white text-blue-700 py-4 rounded-2xl font-extrabold text-lg shadow-lg"
           >
             + Submit ICT Support Request
           </button>
         </div>
 
         {/* Quick Access */}
-        <h2 className="text-xl font-bold text-slate-900 mt-8 mb-4">
+        <h2 className="text-xl font-extrabold text-slate-900 mt-8 mb-4">
           Quick Access
         </h2>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3 md:gap-6">
           <button
             onClick={() => setShowForm(true)}
-            className="bg-white rounded-3xl shadow-md p-4 text-center"
+            className="bg-white rounded-3xl shadow-md p-4 text-center border border-slate-100"
           >
-            <div className="mx-auto w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl">
+            <div className="mx-auto w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md">
               📄
             </div>
-            <p className="font-bold mt-3 text-sm">Log Issue</p>
-            <p className="text-xs text-gray-500 mt-1">New request</p>
+            <p className="font-extrabold mt-3 text-sm md:text-base">
+              Log ICT Issue
+            </p>
+            <p className="text-xs text-gray-500 mt-1 hidden sm:block">
+              Submit a request
+            </p>
+            <p className="text-right mt-2 text-xl">›</p>
           </button>
 
           <a
             href="/knowledge"
-            className="bg-white rounded-3xl shadow-md p-4 text-center"
+            className="bg-white rounded-3xl shadow-md p-4 text-center border border-slate-100"
           >
-            <div className="mx-auto w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl">
+            <div className="mx-auto w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl shadow-md">
               📘
             </div>
-            <p className="font-bold mt-3 text-sm">Knowledge</p>
-            <p className="text-xs text-gray-500 mt-1">Guides</p>
+            <p className="font-extrabold mt-3 text-sm md:text-base">
+              Knowledge Base
+            </p>
+            <p className="text-xs text-gray-500 mt-1 hidden sm:block">
+              Find solutions
+            </p>
+            <p className="text-right mt-2 text-xl">›</p>
           </a>
 
           <button
             onClick={logoutUser}
-            className="bg-white rounded-3xl shadow-md p-4 text-center"
+            className="bg-white rounded-3xl shadow-md p-4 text-center border border-slate-100"
           >
-            <div className="mx-auto w-14 h-14 rounded-full bg-purple-600 text-white flex items-center justify-center text-2xl">
+            <div className="mx-auto w-14 h-14 rounded-full bg-purple-600 text-white flex items-center justify-center text-2xl shadow-md">
               ↪
             </div>
-            <p className="font-bold mt-3 text-sm">Logout</p>
-            <p className="text-xs text-gray-500 mt-1">Sign out</p>
+            <p className="font-extrabold mt-3 text-sm md:text-base">
+              Logout
+            </p>
+            <p className="text-xs text-gray-500 mt-1 hidden sm:block">
+              Sign out
+            </p>
+            <p className="text-right mt-2 text-xl">›</p>
           </button>
         </div>
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-3xl shadow-lg p-5 mt-8">
-            <h2 className="text-2xl font-bold mb-5">
+          <div className="bg-white rounded-3xl shadow-xl p-5 mt-8 border border-slate-100">
+            <h2 className="text-2xl font-extrabold mb-5 text-slate-900">
               Submit ICT Support Request
             </h2>
 
@@ -225,7 +283,7 @@ export default function ClientPortal() {
                 placeholder="Full Name"
                 value={formData.fullName}
                 onChange={handleChange}
-                className="w-full border p-4 rounded-2xl"
+                className="w-full border border-slate-200 p-4 rounded-2xl"
               />
 
               <input
@@ -234,14 +292,14 @@ export default function ClientPortal() {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full border p-4 rounded-2xl"
+                className="w-full border border-slate-200 p-4 rounded-2xl"
               />
 
               <select
                 name="department"
                 value={formData.department}
                 onChange={handleChange}
-                className="w-full border p-4 rounded-2xl"
+                className="w-full border border-slate-200 p-4 rounded-2xl"
               >
                 <option value="">Select Department</option>
                 <option>Administration</option>
@@ -268,14 +326,14 @@ export default function ClientPortal() {
                 placeholder="Office Number"
                 value={formData.officeNumber}
                 onChange={handleChange}
-                className="w-full border p-4 rounded-2xl"
+                className="w-full border border-slate-200 p-4 rounded-2xl"
               />
 
               <select
                 name="issueType"
                 value={formData.issueType}
                 onChange={handleChange}
-                className="w-full border p-4 rounded-2xl"
+                className="w-full border border-slate-200 p-4 rounded-2xl"
               >
                 <option value="">Select Issue Type</option>
                 <option>Password Reset</option>
@@ -294,12 +352,12 @@ export default function ClientPortal() {
                 value={formData.description}
                 onChange={handleChange}
                 rows={5}
-                className="w-full border p-4 rounded-2xl"
+                className="w-full border border-slate-200 p-4 rounded-2xl"
               />
 
               <button
                 type="submit"
-                className="w-full bg-blue-700 text-white py-4 rounded-2xl font-bold"
+                className="w-full bg-blue-700 text-white py-4 rounded-2xl font-extrabold shadow-md"
               >
                 Submit Ticket
               </button>
@@ -309,34 +367,57 @@ export default function ClientPortal() {
 
         {/* Recent Tickets */}
         <div className="flex items-center justify-between mt-8 mb-4">
-          <h2 className="text-xl font-bold text-slate-900">Recent Tickets</h2>
-          <p className="text-blue-700 font-semibold">View All</p>
+          <h2 className="text-xl font-extrabold text-slate-900">
+            Recent Tickets
+          </h2>
+          <button
+            onClick={() => setShowForm(false)}
+            className="text-blue-700 font-bold"
+          >
+            View All
+          </button>
         </div>
 
-        {myTickets.length === 0 ? (
+        {recentTickets.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-md p-6 text-center text-gray-500">
             No tickets submitted yet.
           </div>
         ) : (
           <div className="space-y-4">
-            {myTickets.map((ticket: any) => (
+            {recentTickets.map((ticket: any) => (
               <div
                 key={ticket.id}
-                className="bg-white rounded-3xl shadow-md p-5"
+                className="bg-white rounded-3xl shadow-md p-5 border border-slate-100"
               >
                 <div className="flex justify-between items-start gap-3">
-                  <div>
-                    <h3 className="font-bold text-lg text-slate-900">
-                      {ticket.issueType}
-                    </h3>
+                  <div className="flex gap-3">
+                    <span
+                      className={`mt-2 h-3 w-3 rounded-full ${
+                        ticket.status === "Resolved"
+                          ? "bg-green-500"
+                          : ticket.status === "In Progress"
+                          ? "bg-blue-500"
+                          : "bg-yellow-500"
+                      }`}
+                    />
 
-                    <p className="text-sm text-gray-500 mt-2">
-                      {ticket.department} • Office {ticket.officeNumber}
-                    </p>
+                    <div>
+                      <h3 className="font-extrabold text-lg text-slate-900">
+                        {ticket.issueType}
+                      </h3>
+
+                      <p className="text-sm text-gray-500 mt-2">
+                        🏷️ {ticket.department}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        📅 {ticket.date}
+                      </p>
+                    </div>
                   </div>
 
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    className={`px-3 py-1 rounded-full text-sm font-bold ${
                       ticket.status === "Resolved"
                         ? "bg-green-100 text-green-700"
                         : ticket.status === "In Progress"
@@ -356,41 +437,42 @@ export default function ClientPortal() {
                   ICT Feedback:{" "}
                   {ticket.feedback || "No feedback provided yet."}
                 </div>
-
-                <p className="text-xs text-gray-400 mt-3">
-                  Submitted: {ticket.date}
-                </p>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Bottom Mobile Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t flex justify-around py-3 md:hidden">
-        <button className="text-blue-700 font-semibold">
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl flex justify-around py-3 md:hidden z-50">
+        <button className="text-blue-700 font-bold">
           🏠
           <span className="block text-xs">Home</span>
         </button>
 
         <button
           onClick={() => setShowForm(true)}
-          className="text-gray-600 font-semibold"
+          className="text-gray-600 font-bold"
         >
           📄
-          <span className="block text-xs">Ticket</span>
+          <span className="block text-xs">Tickets</span>
         </button>
 
-        <a href="/knowledge" className="text-gray-600 font-semibold text-center">
+        <a href="/knowledge" className="text-gray-600 font-bold text-center">
           📘
           <span className="block text-xs">Knowledge</span>
         </a>
 
-        <button onClick={logoutUser} className="text-gray-600 font-semibold">
-          👤
-          <span className="block text-xs">Logout</span>
+        <button className="text-gray-600 font-bold">
+          🔔
+          <span className="block text-xs">Notify</span>
         </button>
-      </div>
+
+        <button onClick={logoutUser} className="text-gray-600 font-bold">
+          👤
+          <span className="block text-xs">Profile</span>
+        </button>
+      </nav>
     </main>
   );
 }
