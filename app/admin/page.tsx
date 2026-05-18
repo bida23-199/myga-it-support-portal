@@ -2,27 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { db } from "../../lib/firebase";
-
-import {
-  collection,
-  onSnapshot,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-
+import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import {
   isLoggedIn,
   getUserRole,
   getUsername,
   logoutUser,
 } from "../../lib/auth";
-
 import { sendEmailNotification } from "../../lib/email";
 
 export default function AdminPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [tickets, setTickets] = useState<any[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState("All");
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -39,37 +31,38 @@ export default function AdminPage() {
 
     setUsername(getUsername());
 
-    const unsubscribe = onSnapshot(
-      collection(db, "tickets"),
-      (snapshot) => {
-        const ticketData = snapshot.docs.map((item) => ({
-          id: item.id,
-          ...item.data(),
-        }));
+    const unsubscribe = onSnapshot(collection(db, "tickets"), (snapshot) => {
+      const ticketData = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
 
-        setTickets(ticketData);
-      }
-    );
+      setTickets(ticketData);
+    });
 
     return () => unsubscribe();
   }, []);
 
-  async function updateStatus(
-    id: string,
-    status: string,
-    ticket: any
-  ) {
+  const pending = tickets.filter((t) => t.status === "Pending").length;
+  const progress = tickets.filter((t) => t.status === "In Progress").length;
+  const resolved = tickets.filter((t) => t.status === "Resolved").length;
+  const critical = tickets.filter((t) => t.priority === "Critical").length;
+
+  const filteredTickets =
+    selectedFilter === "All"
+      ? tickets
+      : tickets.filter((ticket) => ticket.status === selectedFilter);
+
+  async function updateStatus(id: string, status: string, ticket: any) {
     try {
-      await updateDoc(doc(db, "tickets", id), {
-        status,
-      });
+      await updateDoc(doc(db, "tickets", id), { status });
 
       await sendEmailNotification({
         to_email: ticket.email,
         to_name: ticket.fullName,
         from_name: "MYGA ICT Department",
         issue_type: ticket.issueType,
-        status: status,
+        status,
         priority: ticket.priority,
         description: ticket.description,
         feedback:
@@ -84,24 +77,13 @@ export default function AdminPage() {
     }
   }
 
-  async function updatePriority(
-    id: string,
-    priority: string
-  ) {
-    await updateDoc(doc(db, "tickets", id), {
-      priority,
-    });
+  async function updatePriority(id: string, priority: string) {
+    await updateDoc(doc(db, "tickets", id), { priority });
   }
 
-  async function updateFeedback(
-    id: string,
-    feedback: string,
-    ticket: any
-  ) {
+  async function updateFeedback(id: string, feedback: string, ticket: any) {
     try {
-      await updateDoc(doc(db, "tickets", id), {
-        feedback,
-      });
+      await updateDoc(doc(db, "tickets", id), { feedback });
 
       await sendEmailNotification({
         to_email: ticket.email,
@@ -111,7 +93,7 @@ export default function AdminPage() {
         status: ticket.status,
         priority: ticket.priority,
         description: ticket.description,
-        feedback: feedback,
+        feedback,
       });
 
       alert("Feedback saved and email sent.");
@@ -122,254 +104,266 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 md:flex">
+    <main className="min-h-screen bg-slate-50 pb-24">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 to-blue-950 text-white px-5 py-5 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <a href="/" className="text-3xl leading-none">
+              ☰
+            </a>
 
-      {/* Sidebar */}
-      <div className="w-full md:w-64 bg-blue-950 text-white md:min-h-screen p-4 md:p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-11 rounded-b-2xl rounded-t-md border-2 border-yellow-500 flex flex-col items-center justify-center text-yellow-400 text-xs font-bold">
+                <span className="text-lg">⚖</span>
+                <span>MYGA</span>
+              </div>
 
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="w-full bg-blue-800 p-3 rounded-xl font-bold"
-        >
-          ☰ Menu
-        </button>
+              <div>
+                <h1 className="text-xl font-extrabold tracking-tight">
+                  ICT Admin Portal
+                </h1>
+                <p className="text-xs text-slate-300">Service Desk Control</p>
+              </div>
+            </div>
+          </div>
 
-        {menuOpen && (
-          <ul className="space-y-3 mt-4">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <span className="text-3xl">🔔</span>
 
-            <li>
-              <a
-                href="/admin"
-                className="block bg-blue-800 p-3 rounded-xl"
-              >
-                Admin Dashboard
-              </a>
-            </li>
+              {pending > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                  {pending}
+                </span>
+              )}
+            </div>
 
-            <li>
-              <a
-                href="/tickets"
-                className="block hover:bg-blue-800 p-3 rounded-xl"
-              >
-                Ticket Records
-              </a>
-            </li>
+            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg shadow-lg">
+              {username ? username.charAt(0).toUpperCase() : "A"}
+            </div>
+          </div>
+        </div>
+      </header>
 
-            <li>
-              <a
-                href="/status"
-                className="block hover:bg-blue-800 p-3 rounded-xl"
-              >
-                System Status
-              </a>
-            </li>
+      <section className="px-4 py-5 max-w-6xl mx-auto">
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-950 text-white rounded-[28px] p-6 shadow-2xl">
+          <p className="text-lg font-semibold">Welcome, {username} 👋</p>
 
-            <li>
-              <a
-                href="/knowledge"
-                className="block hover:bg-blue-800 p-3 rounded-xl"
-              >
-                Knowledge Base
-              </a>
-            </li>
+          <h2 className="text-4xl md:text-5xl font-black mt-4 leading-tight">
+            Manage ICT support requests
+          </h2>
 
-            <li>
-              <button
-                onClick={logoutUser}
-                className="w-full text-left hover:bg-blue-800 p-3 rounded-xl"
-              >
-                Logout
-              </button>
-            </li>
-
-          </ul>
-        )}
-
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-4 md:p-6">
-
-        <div className="bg-blue-700 text-white rounded-2xl p-5 md:p-6 shadow-lg mb-6">
-
-          <h1 className="text-2xl md:text-4xl font-bold">
-            ICT Admin Dashboard
-          </h1>
-
-          <p className="mt-2 text-sm md:text-lg">
-            Welcome {username}. Monitor and manage realtime ICT support requests.
+          <p className="text-blue-100 mt-4 text-lg leading-relaxed">
+            Monitor tickets, update priorities, respond to clients, and track
+            support progress in realtime.
           </p>
-
         </div>
 
-        {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <h2 className="text-xl font-extrabold text-slate-900 mt-8 mb-4">
+          Dashboard Overview
+        </h2>
 
-          <div className="bg-white p-5 rounded-2xl shadow-md">
-            <p className="text-gray-500">Total Tickets</p>
-            <h2 className="text-3xl font-bold">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <button
+            onClick={() => setSelectedFilter("All")}
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
+          >
+            <div className="w-12 h-12 rounded-full bg-slate-900 text-white flex items-center justify-center text-xl">
+              📊
+            </div>
+            <p className="text-gray-500 mt-4">Total Tickets</p>
+            <h3 className="text-4xl font-black text-slate-900">
               {tickets.length}
-            </h2>
-          </div>
+            </h3>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl shadow-md">
-            <p className="text-gray-500">Pending</p>
-            <h2 className="text-3xl font-bold text-yellow-600">
-              {
-                tickets.filter(
-                  (ticket: any) => ticket.status === "Pending"
-                ).length
-              }
-            </h2>
-          </div>
+          <button
+            onClick={() => setSelectedFilter("Pending")}
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
+          >
+            <div className="w-12 h-12 rounded-full bg-yellow-500 text-white flex items-center justify-center text-xl">
+              ⏳
+            </div>
+            <p className="text-gray-500 mt-4">Pending</p>
+            <h3 className="text-4xl font-black text-yellow-600">{pending}</h3>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl shadow-md">
-            <p className="text-gray-500">In Progress</p>
-            <h2 className="text-3xl font-bold text-blue-600">
-              {
-                tickets.filter(
-                  (ticket: any) => ticket.status === "In Progress"
-                ).length
-              }
-            </h2>
-          </div>
+          <button
+            onClick={() => setSelectedFilter("In Progress")}
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
+          >
+            <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl">
+              🔧
+            </div>
+            <p className="text-gray-500 mt-4">In Progress</p>
+            <h3 className="text-4xl font-black text-blue-600">{progress}</h3>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl shadow-md">
-            <p className="text-gray-500">Resolved</p>
-            <h2 className="text-3xl font-bold text-green-600">
-              {
-                tickets.filter(
-                  (ticket: any) => ticket.status === "Resolved"
-                ).length
-              }
-            </h2>
-          </div>
-
+          <button
+            onClick={() => setSelectedFilter("Resolved")}
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
+          >
+            <div className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center text-xl">
+              ✅
+            </div>
+            <p className="text-gray-500 mt-4">Resolved</p>
+            <h3 className="text-4xl font-black text-green-600">{resolved}</h3>
+          </button>
         </div>
 
-        {/* Ticket Management */}
-        <div className="bg-white rounded-2xl shadow-md p-4 md:p-6">
+        <div className="bg-white rounded-3xl shadow-md p-5 mt-6 border border-slate-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500">Critical Issues</p>
+              <h3 className="text-3xl font-black text-red-600">{critical}</h3>
+            </div>
 
-          <h2 className="text-xl md:text-2xl font-semibold mb-4">
+            <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-3xl">
+              🚨
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mt-8 mb-4">
+          <h2 className="text-xl font-extrabold text-slate-900">
             Live Ticket Management
           </h2>
 
-          {tickets.length === 0 ? (
+          <span className="text-blue-700 font-bold">{selectedFilter}</span>
+        </div>
 
-            <p className="text-gray-500">
-              No submitted tickets yet.
-            </p>
+        {filteredTickets.length === 0 ? (
+          <div className="bg-white rounded-3xl shadow-md p-6 text-center text-gray-500">
+            No tickets available.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredTickets.map((ticket: any) => (
+              <div
+                key={ticket.id}
+                className="bg-white rounded-3xl shadow-md p-5 border border-slate-100"
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex gap-3">
+                    <span
+                      className={`mt-2 h-3 w-3 rounded-full ${
+                        ticket.status === "Resolved"
+                          ? "bg-green-500"
+                          : ticket.status === "In Progress"
+                          ? "bg-blue-500"
+                          : "bg-yellow-500"
+                      }`}
+                    />
 
-          ) : (
-
-            <div className="space-y-4">
-
-              {tickets.map((ticket: any) => (
-
-                <div
-                  key={ticket.id}
-                  className="border rounded-2xl p-4 md:p-5"
-                >
-
-                  <div className="flex flex-col lg:flex-row gap-4">
-
-                    <div className="flex-1">
-
-                      <h3 className="font-bold text-lg md:text-xl">
+                    <div>
+                      <h3 className="font-extrabold text-lg text-slate-900">
                         {ticket.issueType}
                       </h3>
 
-                      <p className="text-gray-500 mt-1 text-sm">
-                        {ticket.fullName} | {ticket.department}
+                      <p className="text-sm text-gray-500 mt-1">
+                        {ticket.fullName} • {ticket.department}
                       </p>
 
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-sm text-gray-500">
                         Office {ticket.officeNumber}
                       </p>
-
-                      <p className="text-gray-700 mt-3">
-                        {ticket.description}
-                      </p>
-
-                      <p className="text-sm text-gray-400 mt-3">
-                        Submitted: {ticket.date}
-                      </p>
-
-                      <div className="mt-4">
-
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Feedback to Client
-                        </label>
-
-                        <textarea
-                          defaultValue={ticket.feedback || ""}
-                          placeholder="Write feedback or resolution note for the client..."
-                          onBlur={(e) =>
-                            updateFeedback(
-                              ticket.id,
-                              e.target.value,
-                              ticket
-                            )
-                          }
-                          className="w-full border p-3 rounded-xl"
-                          rows={3}
-                        />
-
-                      </div>
-
                     </div>
-
-                    <div className="w-full lg:w-56 space-y-3">
-
-                      <select
-                        value={ticket.status}
-                        onChange={(e) =>
-                          updateStatus(
-                            ticket.id,
-                            e.target.value,
-                            ticket
-                          )
-                        }
-                        className="w-full border p-3 rounded-xl"
-                      >
-                        <option>Pending</option>
-                        <option>In Progress</option>
-                        <option>Resolved</option>
-                      </select>
-
-                      <select
-                        value={ticket.priority}
-                        onChange={(e) =>
-                          updatePriority(
-                            ticket.id,
-                            e.target.value
-                          )
-                        }
-                        className="w-full border p-3 rounded-xl"
-                      >
-                        <option>Unassigned</option>
-                        <option>Low</option>
-                        <option>Medium</option>
-                        <option>High</option>
-                        <option>Critical</option>
-                      </select>
-
-                    </div>
-
                   </div>
 
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-bold ${
+                      ticket.status === "Resolved"
+                        ? "bg-green-100 text-green-700"
+                        : ticket.status === "In Progress"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {ticket.status}
+                  </span>
                 </div>
 
-              ))}
+                <p className="text-gray-700 mt-4">{ticket.description}</p>
 
-            </div>
+                <p className="text-xs text-gray-400 mt-3">
+                  Submitted: {ticket.date}
+                </p>
 
-          )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <select
+                    value={ticket.status}
+                    onChange={(e) =>
+                      updateStatus(ticket.id, e.target.value, ticket)
+                    }
+                    className="w-full border border-slate-200 p-3 rounded-2xl"
+                  >
+                    <option>Pending</option>
+                    <option>In Progress</option>
+                    <option>Resolved</option>
+                  </select>
 
-        </div>
+                  <select
+                    value={ticket.priority}
+                    onChange={(e) =>
+                      updatePriority(ticket.id, e.target.value)
+                    }
+                    className="w-full border border-slate-200 p-3 rounded-2xl"
+                  >
+                    <option>Unassigned</option>
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Critical</option>
+                  </select>
+                </div>
 
-      </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Feedback to Client
+                  </label>
 
+                  <textarea
+                    defaultValue={ticket.feedback || ""}
+                    placeholder="Write feedback or resolution note..."
+                    onBlur={(e) =>
+                      updateFeedback(ticket.id, e.target.value, ticket)
+                    }
+                    className="w-full border border-slate-200 p-3 rounded-2xl"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl flex justify-around py-3 md:hidden z-50">
+        <a href="/admin" className="text-blue-700 font-bold text-center">
+          🏠
+          <span className="block text-xs">Home</span>
+        </a>
+
+        <a href="/tickets" className="text-gray-600 font-bold text-center">
+          📄
+          <span className="block text-xs">Tickets</span>
+        </a>
+
+        <a href="/status" className="text-gray-600 font-bold text-center">
+          📡
+          <span className="block text-xs">Status</span>
+        </a>
+
+        <a href="/knowledge" className="text-gray-600 font-bold text-center">
+          📘
+          <span className="block text-xs">Knowledge</span>
+        </a>
+
+        <button onClick={logoutUser} className="text-gray-600 font-bold">
+          👤
+          <span className="block text-xs">Logout</span>
+        </button>
+      </nav>
     </main>
   );
 }
