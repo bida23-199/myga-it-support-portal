@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { isLoggedIn, getUsername, logoutUser } from "../lib/auth";
+import { isLoggedIn, getUsername } from "../lib/auth";
 import { sendEmailNotification } from "../lib/email";
 import {
   collection,
@@ -11,6 +11,9 @@ import {
   query,
   where,
 } from "firebase/firestore";
+
+import AppHeader from "../components/AppHeader";
+import BottomNav from "../components/BottomNav";
 
 export default function ClientPortal() {
   const [username, setUsername] = useState("");
@@ -92,7 +95,7 @@ export default function ClientPortal() {
       await addDoc(collection(db, "tickets"), newTicket);
 
       await sendEmailNotification({
-        to_email: "YOUR_IT_EMAIL_HERE",
+        to_email: "bida23-199@thuto.bac.ac.bw",
         to_name: "ICT Department",
         from_name: formData.fullName,
         issue_type: formData.issueType,
@@ -121,94 +124,32 @@ export default function ClientPortal() {
     }
   }
 
-  const recentTickets = myTickets.slice(0, 3);
+  const activeNotifications = myTickets.filter(
+    (ticket: any) => ticket.status !== "Resolved"
+  );
 
   return (
     <main className="min-h-screen bg-slate-50 pb-24">
-      {/* Top Mobile App Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 to-blue-950 text-white px-5 py-5 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowForm(false)}
-              className="text-3xl leading-none"
-            >
-              ☰
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="h-14 w-11 rounded-b-2xl rounded-t-md border-2 border-yellow-500 flex flex-col items-center justify-center text-yellow-400 text-xs font-bold">
-                <span className="text-lg">⚖</span>
-                <span>MYGA</span>
-              </div>
-
-              <div>
-                <h1 className="text-xl font-extrabold tracking-tight">
-                  ICT Support Portal
-                </h1>
-                <p className="text-xs text-slate-300">Service Desk</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <span className="text-3xl">🔔</span>
-
-              {myTickets.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
-                  {myTickets.length}
-                </span>
-              )}
-            </div>
-
-            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg shadow-lg">
-              {username ? username.charAt(0).toUpperCase() : "U"}
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader notificationCount={activeNotifications.length} />
 
       <section className="px-4 py-5 max-w-6xl mx-auto">
-        {/* Hero Card */}
-        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-950 text-white rounded-[28px] p-6 shadow-2xl overflow-hidden relative">
-          <div className="absolute right-4 top-10 hidden sm:block opacity-20 text-9xl">
-            ⚙️
-          </div>
+        {/* Hero */}
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-950 text-white rounded-[28px] p-6 shadow-2xl">
+          <p className="text-lg font-semibold">
+            Welcome, {username} 👋
+          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center relative z-10">
-            <div>
-              <p className="text-lg font-semibold">
-                Welcome, {username} 👋
-              </p>
+          <h1 className="text-4xl md:text-5xl font-black mt-4 leading-tight">
+            How can we help you today?
+          </h1>
 
-              <h2 className="text-4xl md:text-5xl font-black mt-4 leading-tight">
-                How can we help you today?
-              </h2>
-
-              <p className="text-blue-100 mt-4 text-lg leading-relaxed">
-                Log ICT support issues and track feedback from the ICT
-                Department.
-              </p>
-            </div>
-
-            <div className="hidden md:flex justify-center">
-              <div className="relative">
-                <div className="w-48 h-32 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center">
-                  <div className="w-32 h-20 bg-white rounded-xl shadow-lg flex items-center justify-center text-blue-700 text-5xl">
-                    🖥️
-                  </div>
-                </div>
-                <div className="absolute -right-6 top-12 bg-white text-blue-700 rounded-2xl px-4 py-3 shadow-xl">
-                  💬
-                </div>
-              </div>
-            </div>
-          </div>
+          <p className="text-blue-100 mt-4 text-lg">
+            Log ICT support requests and track realtime feedback from MYGA ICT.
+          </p>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="relative z-10 mt-7 w-full bg-white text-blue-700 py-4 rounded-2xl font-extrabold text-lg shadow-lg"
+            className="mt-7 w-full bg-white text-blue-700 py-4 rounded-2xl font-extrabold text-lg shadow-lg"
           >
             + Submit ICT Support Request
           </button>
@@ -219,57 +160,77 @@ export default function ClientPortal() {
           Quick Access
         </h2>
 
-        <div className="grid grid-cols-3 gap-3 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button
             onClick={() => setShowForm(true)}
-            className="bg-white rounded-3xl shadow-md p-4 text-center border border-slate-100"
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
           >
-            <div className="mx-auto w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md">
+            <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl">
               📄
             </div>
-            <p className="font-extrabold mt-3 text-sm md:text-base">
+
+            <h3 className="font-extrabold mt-4 text-slate-900">
               Log ICT Issue
+            </h3>
+
+            <p className="text-gray-500 text-sm mt-1">
+              Submit a new support request
             </p>
-            <p className="text-xs text-gray-500 mt-1 hidden sm:block">
-              Submit a request
-            </p>
-            <p className="text-right mt-2 text-xl">›</p>
           </button>
 
           <a
-            href="/knowledge"
-            className="bg-white rounded-3xl shadow-md p-4 text-center border border-slate-100"
+            href="#my-tickets"
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
           >
-            <div className="mx-auto w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl shadow-md">
-              📘
+            <div className="w-14 h-14 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl">
+              🎫
             </div>
-            <p className="font-extrabold mt-3 text-sm md:text-base">
-              Knowledge Base
+
+            <h3 className="font-extrabold mt-4 text-slate-900">
+              My Tickets
+            </h3>
+
+            <p className="text-gray-500 text-sm mt-1">
+              View submitted requests
             </p>
-            <p className="text-xs text-gray-500 mt-1 hidden sm:block">
-              Find solutions
-            </p>
-            <p className="text-right mt-2 text-xl">›</p>
           </a>
 
-          <button
-            onClick={logoutUser}
-            className="bg-white rounded-3xl shadow-md p-4 text-center border border-slate-100"
+          <a
+            href="/knowledge"
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
           >
-            <div className="mx-auto w-14 h-14 rounded-full bg-purple-600 text-white flex items-center justify-center text-2xl shadow-md">
-              ↪
+            <div className="w-14 h-14 rounded-full bg-yellow-500 text-white flex items-center justify-center text-2xl">
+              📘
             </div>
-            <p className="font-extrabold mt-3 text-sm md:text-base">
-              Logout
+
+            <h3 className="font-extrabold mt-4 text-slate-900">
+              Knowledge Base
+            </h3>
+
+            <p className="text-gray-500 text-sm mt-1">
+              ICT self-service help guides
             </p>
-            <p className="text-xs text-gray-500 mt-1 hidden sm:block">
-              Sign out
+          </a>
+
+          <a
+            href="#notifications"
+            className="bg-white rounded-3xl shadow-md p-5 text-left border border-slate-100"
+          >
+            <div className="w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center text-2xl">
+              🔔
+            </div>
+
+            <h3 className="font-extrabold mt-4 text-slate-900">
+              Notifications
+            </h3>
+
+            <p className="text-gray-500 text-sm mt-1">
+              View ticket updates
             </p>
-            <p className="text-right mt-2 text-xl">›</p>
-          </button>
+          </a>
         </div>
 
-        {/* Form */}
+        {/* Submit Form */}
         {showForm && (
           <div className="bg-white rounded-3xl shadow-xl p-5 mt-8 border border-slate-100">
             <h2 className="text-2xl font-extrabold mb-5 text-slate-900">
@@ -307,17 +268,9 @@ export default function ClientPortal() {
                 <option>Procurement</option>
                 <option>Human Resources</option>
                 <option>ICT Department</option>
-                <option>Internal Audit</option>
                 <option>Registry</option>
-                <option>Youth Development</option>
-                <option>Gender Affairs</option>
-                <option>Corporate Services</option>
                 <option>Finance</option>
                 <option>Transport & Logistics</option>
-                <option>Planning</option>
-                <option>Legal Services</option>
-                <option>Office of the Permanent Secretary</option>
-                <option>Minister's Office</option>
               </select>
 
               <input
@@ -357,7 +310,7 @@ export default function ClientPortal() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-700 text-white py-4 rounded-2xl font-extrabold shadow-md"
+                className="w-full bg-blue-700 text-white py-4 rounded-2xl font-extrabold"
               >
                 Submit Ticket
               </button>
@@ -365,55 +318,67 @@ export default function ClientPortal() {
           </div>
         )}
 
-        {/* Recent Tickets */}
-        <div className="flex items-center justify-between mt-8 mb-4">
-          <h2 className="text-xl font-extrabold text-slate-900">
-            Recent Tickets
+        {/* Notifications */}
+        <div
+          id="notifications"
+          className="bg-white rounded-3xl shadow-md p-5 mt-8 border border-slate-100"
+        >
+          <h2 className="text-xl font-extrabold text-slate-900 mb-4">
+            Notifications
           </h2>
-          <button
-            onClick={() => setShowForm(false)}
-            className="text-blue-700 font-bold"
-          >
-            View All
-          </button>
+
+          {activeNotifications.length === 0 ? (
+            <p className="text-gray-500">No new notifications.</p>
+          ) : (
+            <div className="space-y-3">
+              {activeNotifications.map((ticket: any) => (
+                <div
+                  key={ticket.id}
+                  className="bg-blue-50 text-blue-800 p-4 rounded-2xl"
+                >
+                  Your ticket for{" "}
+                  <b>{ticket.issueType}</b> is currently{" "}
+                  <b>{ticket.status}</b>.
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {recentTickets.length === 0 ? (
+        {/* Tickets */}
+        <div
+          id="my-tickets"
+          className="flex items-center justify-between mt-8 mb-4"
+        >
+          <h2 className="text-xl font-extrabold text-slate-900">
+            My Tickets
+          </h2>
+
+          <span className="text-blue-700 font-bold">
+            {myTickets.length} tickets
+          </span>
+        </div>
+
+        {myTickets.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-md p-6 text-center text-gray-500">
             No tickets submitted yet.
           </div>
         ) : (
           <div className="space-y-4">
-            {recentTickets.map((ticket: any) => (
+            {myTickets.map((ticket: any) => (
               <div
                 key={ticket.id}
                 className="bg-white rounded-3xl shadow-md p-5 border border-slate-100"
               >
                 <div className="flex justify-between items-start gap-3">
-                  <div className="flex gap-3">
-                    <span
-                      className={`mt-2 h-3 w-3 rounded-full ${
-                        ticket.status === "Resolved"
-                          ? "bg-green-500"
-                          : ticket.status === "In Progress"
-                          ? "bg-blue-500"
-                          : "bg-yellow-500"
-                      }`}
-                    />
+                  <div>
+                    <h3 className="font-extrabold text-lg text-slate-900">
+                      {ticket.issueType}
+                    </h3>
 
-                    <div>
-                      <h3 className="font-extrabold text-lg text-slate-900">
-                        {ticket.issueType}
-                      </h3>
-
-                      <p className="text-sm text-gray-500 mt-2">
-                        🏷️ {ticket.department}
-                      </p>
-
-                      <p className="text-sm text-gray-500">
-                        📅 {ticket.date}
-                      </p>
-                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {ticket.department} • Office {ticket.officeNumber}
+                    </p>
                   </div>
 
                   <span
@@ -429,7 +394,7 @@ export default function ClientPortal() {
                   </span>
                 </div>
 
-                <p className="text-gray-700 mt-3 line-clamp-2">
+                <p className="text-gray-700 mt-4">
                   {ticket.description}
                 </p>
 
@@ -437,42 +402,17 @@ export default function ClientPortal() {
                   ICT Feedback:{" "}
                   {ticket.feedback || "No feedback provided yet."}
                 </div>
+
+                <p className="text-xs text-gray-400 mt-3">
+                  Submitted: {ticket.date}
+                </p>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl flex justify-around py-3 md:hidden z-50">
-        <button className="text-blue-700 font-bold">
-          🏠
-          <span className="block text-xs">Home</span>
-        </button>
-
-        <button
-          onClick={() => setShowForm(true)}
-          className="text-gray-600 font-bold"
-        >
-          📄
-          <span className="block text-xs">Tickets</span>
-        </button>
-
-        <a href="/knowledge" className="text-gray-600 font-bold text-center">
-          📘
-          <span className="block text-xs">Knowledge</span>
-        </a>
-
-        <button className="text-gray-600 font-bold">
-          🔔
-          <span className="block text-xs">Notify</span>
-        </button>
-
-        <button onClick={logoutUser} className="text-gray-600 font-bold">
-          👤
-          <span className="block text-xs">Profile</span>
-        </button>
-      </nav>
+      <BottomNav />
     </main>
   );
 }

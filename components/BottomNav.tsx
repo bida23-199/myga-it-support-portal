@@ -6,16 +6,47 @@ export default function BottomNav() {
   const role = getUserRole();
   const isIT = role === "IT Officer" || role === "Administrator";
 
+  if (isIT) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl flex justify-around py-3 md:hidden z-40">
+        <a href="/admin" className="text-blue-700 font-bold text-center">
+          🏠
+          <span className="block text-xs">Home</span>
+        </a>
+
+        <a href="/tickets" className="text-gray-600 font-bold text-center">
+          📄
+          <span className="block text-xs">Tickets</span>
+        </a>
+
+        <a href="/status" className="text-gray-600 font-bold text-center">
+          📡
+          <span className="block text-xs">Status</span>
+        </a>
+
+        <a href="/knowledge" className="text-gray-600 font-bold text-center">
+          📘
+          <span className="block text-xs">Knowledge</span>
+        </a>
+
+        <button onClick={logoutUser} className="text-gray-600 font-bold">
+          👤
+          <span className="block text-xs">Logout</span>
+        </button>
+      </nav>
+    );
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl flex justify-around py-3 md:hidden z-40">
-      <a href={isIT ? "/admin" : "/"} className="text-blue-700 font-bold text-center">
+      <a href="/" className="text-blue-700 font-bold text-center">
         🏠
         <span className="block text-xs">Home</span>
       </a>
 
-      <a href={isIT ? "/tickets" : "/"} className="text-gray-600 font-bold text-center">
+      <a href="/#my-tickets" className="text-gray-600 font-bold text-center">
         📄
-        <span className="block text-xs">Tickets</span>
+        <span className="block text-xs">My Tickets</span>
       </a>
 
       <a href="/knowledge" className="text-gray-600 font-bold text-center">
@@ -23,9 +54,9 @@ export default function BottomNav() {
         <span className="block text-xs">Knowledge</span>
       </a>
 
-      <a href={isIT ? "/status" : "/"} className="text-gray-600 font-bold text-center">
+      <a href="/#notifications" className="text-gray-600 font-bold text-center">
         🔔
-        <span className="block text-xs">Notify</span>
+        <span className="block text-xs">Alerts</span>
       </a>
 
       <button onClick={logoutUser} className="text-gray-600 font-bold">

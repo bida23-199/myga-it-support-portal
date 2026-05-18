@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { getUserRole, getUsername, logoutUser } from "../lib/auth";
 
-export default function AppHeader() {
+export default function AppHeader({ notificationCount = 0 }: { notificationCount?: number }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const username = getUsername();
   const role = getUserRole();
@@ -26,21 +27,28 @@ export default function AppHeader() {
 
             <div>
               <h1 className="text-xl font-extrabold">ICT Support Portal</h1>
-              <p className="text-xs text-slate-300">MYGA Service Desk</p>
+              <p className="text-xs text-slate-300">
+                {isIT ? "Admin Service Desk" : "Client Service Desk"}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <a href={isIT ? "/status" : "/"} className="relative text-3xl">
+            <a href={isIT ? "/admin" : "/"} className="relative text-3xl">
               🔔
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2">
-                !
-              </span>
+              {notificationCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2">
+                  {notificationCount}
+                </span>
+              )}
             </a>
 
-            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg">
+            <button
+              onClick={() => setProfileOpen(true)}
+              className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg shadow-lg"
+            >
               {username ? username.charAt(0).toUpperCase() : "U"}
-            </div>
+            </button>
           </div>
         </div>
       </header>
@@ -56,17 +64,33 @@ export default function AppHeader() {
             </button>
 
             <ul className="space-y-3">
-              <li>
-                <a href="/" className="block hover:bg-blue-800 p-3 rounded-xl">
-                  Client Portal
-                </a>
-              </li>
+              {!isIT && (
+                <>
+                  <li>
+                    <a href="/" className="block hover:bg-blue-800 p-3 rounded-xl">
+                      Log ICT Issue
+                    </a>
+                  </li>
 
-              <li>
-                <a href="/knowledge" className="block hover:bg-blue-800 p-3 rounded-xl">
-                  Knowledge Base
-                </a>
-              </li>
+                  <li>
+                    <a href="/#my-tickets" className="block hover:bg-blue-800 p-3 rounded-xl">
+                      My Tickets
+                    </a>
+                  </li>
+
+                  <li>
+                    <a href="/knowledge" className="block hover:bg-blue-800 p-3 rounded-xl">
+                      Knowledge Base
+                    </a>
+                  </li>
+
+                  <li>
+                    <a href="/#notifications" className="block hover:bg-blue-800 p-3 rounded-xl">
+                      Notifications
+                    </a>
+                  </li>
+                </>
+              )}
 
               {isIT && (
                 <>
@@ -87,8 +111,23 @@ export default function AppHeader() {
                       System Status
                     </a>
                   </li>
+
+                  <li>
+                    <a href="/knowledge" className="block hover:bg-blue-800 p-3 rounded-xl">
+                      Knowledge Base
+                    </a>
+                  </li>
                 </>
               )}
+
+              <li>
+                <button
+                  onClick={() => setProfileOpen(true)}
+                  className="w-full text-left hover:bg-blue-800 p-3 rounded-xl"
+                >
+                  Profile
+                </button>
+              </li>
 
               <li>
                 <button
@@ -99,6 +138,43 @@ export default function AppHeader() {
                 </button>
               </li>
             </ul>
+          </div>
+        </div>
+      )}
+
+      {profileOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-5">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex justify-center">
+              <div className="h-20 w-20 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-black">
+                {username ? username.charAt(0).toUpperCase() : "U"}
+              </div>
+            </div>
+
+            <h2 className="text-center text-2xl font-black mt-4 text-slate-900">
+              {username || "User"}
+            </h2>
+
+            <p className="text-center text-gray-500 mt-1">{role || "Client/User"}</p>
+
+            <div className="bg-slate-100 rounded-2xl p-4 mt-5 text-sm text-gray-700">
+              <p><b>Portal:</b> MYGA ICT Support Portal</p>
+              <p><b>Access:</b> {isIT ? "IT Officer/Admin" : "Client/User"}</p>
+            </div>
+
+            <button
+              onClick={() => setProfileOpen(false)}
+              className="w-full bg-blue-700 text-white py-3 rounded-2xl mt-5 font-bold"
+            >
+              Close
+            </button>
+
+            <button
+              onClick={logoutUser}
+              className="w-full bg-red-100 text-red-700 py-3 rounded-2xl mt-3 font-bold"
+            >
+              Logout
+            </button>
           </div>
         </div>
       )}
