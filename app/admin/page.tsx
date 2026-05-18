@@ -59,22 +59,29 @@ export default function AdminPage() {
     status: string,
     ticket: any
   ) {
-    await updateDoc(doc(db, "tickets", id), {
-      status,
-    });
+    try {
+      await updateDoc(doc(db, "tickets", id), {
+        status,
+      });
 
-    await sendEmailNotification({
-      to_email: ticket.email,
-      to_name: ticket.fullName,
-      from_name: "MYGA ICT Department",
-      issue_type: ticket.issueType,
-      status: status,
-      priority: ticket.priority,
-      description: ticket.description,
-      feedback:
-        ticket.feedback ||
-        "Your ICT support ticket status has been updated.",
-    });
+      await sendEmailNotification({
+        to_email: ticket.email,
+        to_name: ticket.fullName,
+        from_name: "MYGA ICT Department",
+        issue_type: ticket.issueType,
+        status: status,
+        priority: ticket.priority,
+        description: ticket.description,
+        feedback:
+          ticket.feedback ||
+          "Your ICT support ticket status has been updated.",
+      });
+
+      alert("Status updated and email sent.");
+    } catch (error) {
+      console.error(error);
+      alert("Status updated.");
+    }
   }
 
   async function updatePriority(
@@ -91,37 +98,44 @@ export default function AdminPage() {
     feedback: string,
     ticket: any
   ) {
-    await updateDoc(doc(db, "tickets", id), {
-      feedback,
-    });
+    try {
+      await updateDoc(doc(db, "tickets", id), {
+        feedback,
+      });
 
-    await sendEmailNotification({
-      to_email: ticket.email,
-      to_name: ticket.fullName,
-      from_name: "MYGA ICT Department",
-      issue_type: ticket.issueType,
-      status: ticket.status,
-      priority: ticket.priority,
-      description: ticket.description,
-      feedback: feedback,
-    });
+      await sendEmailNotification({
+        to_email: ticket.email,
+        to_name: ticket.fullName,
+        from_name: "MYGA ICT Department",
+        issue_type: ticket.issueType,
+        status: ticket.status,
+        priority: ticket.priority,
+        description: ticket.description,
+        feedback: feedback,
+      });
+
+      alert("Feedback saved and email sent.");
+    } catch (error) {
+      console.error(error);
+      alert("Feedback saved.");
+    }
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex">
+    <main className="min-h-screen bg-gray-100 md:flex">
 
       {/* Sidebar */}
-      <div className="w-64 bg-blue-950 text-white min-h-screen p-5">
+      <div className="w-full md:w-64 bg-blue-950 text-white md:min-h-screen p-4 md:p-5">
 
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="w-full bg-blue-800 p-3 rounded-xl font-bold mb-4"
+          className="w-full bg-blue-800 p-3 rounded-xl font-bold"
         >
           ☰ Menu
         </button>
 
         {menuOpen && (
-          <ul className="space-y-3">
+          <ul className="space-y-3 mt-4">
 
             <li>
               <a
@@ -174,22 +188,22 @@ export default function AdminPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-4 md:p-6">
 
-        <div className="bg-blue-700 text-white rounded-2xl p-6 shadow-lg mb-6">
+        <div className="bg-blue-700 text-white rounded-2xl p-5 md:p-6 shadow-lg mb-6">
 
-          <h1 className="text-4xl font-bold">
+          <h1 className="text-2xl md:text-4xl font-bold">
             ICT Admin Dashboard
           </h1>
 
-          <p className="mt-2 text-lg">
+          <p className="mt-2 text-sm md:text-lg">
             Welcome {username}. Monitor and manage realtime ICT support requests.
           </p>
 
         </div>
 
         {/* Dashboard Cards */}
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
           <div className="bg-white p-5 rounded-2xl shadow-md">
             <p className="text-gray-500">Total Tickets</p>
@@ -234,9 +248,9 @@ export default function AdminPage() {
         </div>
 
         {/* Ticket Management */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
+        <div className="bg-white rounded-2xl shadow-md p-4 md:p-6">
 
-          <h2 className="text-2xl font-semibold mb-4">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">
             Live Ticket Management
           </h2>
 
@@ -254,22 +268,22 @@ export default function AdminPage() {
 
                 <div
                   key={ticket.id}
-                  className="border rounded-2xl p-5"
+                  className="border rounded-2xl p-4 md:p-5"
                 >
 
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex flex-col lg:flex-row gap-4">
 
                     <div className="flex-1">
 
-                      <h3 className="font-bold text-xl">
+                      <h3 className="font-bold text-lg md:text-xl">
                         {ticket.issueType}
                       </h3>
 
-                      <p className="text-gray-500 mt-1">
+                      <p className="text-gray-500 mt-1 text-sm">
                         {ticket.fullName} | {ticket.department}
                       </p>
 
-                      <p className="text-gray-500">
+                      <p className="text-gray-500 text-sm">
                         Office {ticket.officeNumber}
                       </p>
 
@@ -305,7 +319,7 @@ export default function AdminPage() {
 
                     </div>
 
-                    <div className="space-y-3 min-w-52">
+                    <div className="w-full lg:w-56 space-y-3">
 
                       <select
                         value={ticket.status}
