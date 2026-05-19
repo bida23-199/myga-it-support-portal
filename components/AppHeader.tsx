@@ -1,21 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getUserRole, getUsername, logoutUser } from "../lib/auth";
 
-export default function AppHeader({ notificationCount = 0 }: { notificationCount?: number }) {
+export default function AppHeader({
+  notificationCount = 0,
+}: {
+  notificationCount?: number;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState("");
 
-  const username = getUsername();
-  const role = getUserRole();
+  useEffect(() => {
+    setMounted(true);
+    setUsername(getUsername());
+    setRole(getUserRole());
+  }, []);
+
   const isIT = role === "IT Officer" || role === "Administrator";
+
+  if (!mounted) {
+    return (
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 to-blue-950 text-white px-5 py-5 shadow-xl">
+        <div className="flex items-center justify-between">
+          <button className="text-3xl">☰</button>
+
+          <div className="flex items-center gap-3">
+            <div className="h-14 w-11 rounded-b-2xl rounded-t-md border-2 border-yellow-500 flex flex-col items-center justify-center text-yellow-400 text-xs font-bold">
+              <span className="text-lg">⚖</span>
+              <span>MYGA</span>
+            </div>
+
+            <div>
+              <h1 className="text-xl font-extrabold">
+                ICT Support Portal
+              </h1>
+
+              <p className="text-xs text-slate-300">
+                MYGA Service Desk
+              </p>
+            </div>
+          </div>
+
+          <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg">
+            U
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
       <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 to-blue-950 text-white px-5 py-5 shadow-xl">
         <div className="flex items-center justify-between">
-          <button onClick={() => setMenuOpen(true)} className="text-3xl">
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="text-3xl"
+          >
             ☰
           </button>
 
@@ -26,16 +71,25 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
             </div>
 
             <div>
-              <h1 className="text-xl font-extrabold">ICT Support Portal</h1>
+              <h1 className="text-xl font-extrabold">
+                ICT Support Portal
+              </h1>
+
               <p className="text-xs text-slate-300">
-                {isIT ? "Admin Service Desk" : "Client Service Desk"}
+                {isIT
+                  ? "Admin Service Desk"
+                  : "Client Service Desk"}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <a href={isIT ? "/admin" : "/"} className="relative text-3xl">
+            <a
+              href={isIT ? "/admin" : "/#notifications"}
+              className="relative text-3xl"
+            >
               🔔
+
               {notificationCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2">
                   {notificationCount}
@@ -47,7 +101,7 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
               onClick={() => setProfileOpen(true)}
               className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center font-extrabold text-lg shadow-lg"
             >
-              {username ? username.charAt(0).toUpperCase() : "U"}
+              {username?.charAt(0)?.toUpperCase() || "U"}
             </button>
           </div>
         </div>
@@ -67,25 +121,37 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
               {!isIT && (
                 <>
                   <li>
-                    <a href="/" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       Log ICT Issue
                     </a>
                   </li>
 
                   <li>
-                    <a href="/#my-tickets" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/#my-tickets"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       My Tickets
                     </a>
                   </li>
 
                   <li>
-                    <a href="/knowledge" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/knowledge"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       Knowledge Base
                     </a>
                   </li>
 
                   <li>
-                    <a href="/#notifications" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/#notifications"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       Notifications
                     </a>
                   </li>
@@ -95,25 +161,37 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
               {isIT && (
                 <>
                   <li>
-                    <a href="/admin" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/admin"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       Admin Dashboard
                     </a>
                   </li>
 
                   <li>
-                    <a href="/tickets" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/tickets"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       Ticket Records
                     </a>
                   </li>
 
                   <li>
-                    <a href="/status" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/status"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       System Status
                     </a>
                   </li>
 
                   <li>
-                    <a href="/knowledge" className="block hover:bg-blue-800 p-3 rounded-xl">
+                    <a
+                      href="/knowledge"
+                      className="block hover:bg-blue-800 p-3 rounded-xl"
+                    >
                       Knowledge Base
                     </a>
                   </li>
@@ -122,7 +200,10 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
 
               <li>
                 <button
-                  onClick={() => setProfileOpen(true)}
+                  onClick={() => {
+                    setProfileOpen(true);
+                    setMenuOpen(false);
+                  }}
                   className="w-full text-left hover:bg-blue-800 p-3 rounded-xl"
                 >
                   Profile
@@ -147,7 +228,7 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
             <div className="flex justify-center">
               <div className="h-20 w-20 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-black">
-                {username ? username.charAt(0).toUpperCase() : "U"}
+                {username?.charAt(0)?.toUpperCase() || "U"}
               </div>
             </div>
 
@@ -155,11 +236,19 @@ export default function AppHeader({ notificationCount = 0 }: { notificationCount
               {username || "User"}
             </h2>
 
-            <p className="text-center text-gray-500 mt-1">{role || "Client/User"}</p>
+            <p className="text-center text-gray-500 mt-1">
+              {role || "Client/User"}
+            </p>
 
             <div className="bg-slate-100 rounded-2xl p-4 mt-5 text-sm text-gray-700">
-              <p><b>Portal:</b> MYGA ICT Support Portal</p>
-              <p><b>Access:</b> {isIT ? "IT Officer/Admin" : "Client/User"}</p>
+              <p>
+                <b>Portal:</b> MYGA ICT Support Portal
+              </p>
+
+              <p>
+                <b>Access:</b>{" "}
+                {isIT ? "IT Officer/Admin" : "Client/User"}
+              </p>
             </div>
 
             <button
