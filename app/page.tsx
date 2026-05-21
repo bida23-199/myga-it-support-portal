@@ -127,8 +127,8 @@ export default function ClientPortal() {
 
   return (
     <>
-      {/* DESKTOP VIEW ONLY */}
-      <main className="hidden md:flex min-h-screen bg-gray-100">
+      {/* DESKTOP VIEW */}
+      <main className="hidden sm:flex min-h-screen bg-gray-100">
         <div className="w-64 bg-blue-950 text-white min-h-screen p-5">
           <h2 className="text-2xl font-bold mb-8">MYGA ICT</h2>
 
@@ -140,10 +140,7 @@ export default function ClientPortal() {
             </li>
 
             <li>
-              <a
-                href="/knowledge"
-                className="block hover:bg-blue-800 p-3 rounded-xl"
-              >
+              <a href="/knowledge" className="block hover:bg-blue-800 p-3 rounded-xl">
                 Knowledge Base
               </a>
             </li>
@@ -204,9 +201,17 @@ export default function ClientPortal() {
                 <option>Procurement</option>
                 <option>Human Resources</option>
                 <option>ICT Department</option>
+                <option>Internal Audit</option>
                 <option>Registry</option>
+                <option>Youth Development</option>
+                <option>Gender Affairs</option>
+                <option>Corporate Services</option>
                 <option>Finance</option>
                 <option>Transport & Logistics</option>
+                <option>Planning</option>
+                <option>Legal Services</option>
+                <option>Office of the Permanent Secretary</option>
+                <option>Minister's Office</option>
               </select>
 
               <input
@@ -267,11 +272,12 @@ export default function ClientPortal() {
                     <h3 className="font-bold">{ticket.issueType}</h3>
 
                     <p className="text-sm text-gray-500 mt-1">
-                      {ticket.department} | Office {ticket.officeNumber}
+                      Department: {ticket.department} | Office:{" "}
+                      {ticket.officeNumber}
                     </p>
 
                     <p className="text-sm text-gray-500">
-                      Status: {ticket.status} | Priority: {ticket.priority}
+                      Status: {ticket.status}
                     </p>
 
                     <p className="mt-2 text-gray-700">{ticket.description}</p>
@@ -292,11 +298,13 @@ export default function ClientPortal() {
         </div>
       </main>
 
-      {/* MOBILE VIEW ONLY */}
-      <main className="md:hidden min-h-screen bg-slate-50 pb-24">
+      {/* PHONE VIEW */}
+      <main className="sm:hidden min-h-screen bg-slate-50 pb-24">
         <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 to-blue-950 text-white px-5 py-5 shadow-xl">
           <div className="flex items-center justify-between">
-            <button className="text-3xl">☰</button>
+            <a href="/" className="text-3xl">
+              ☰
+            </a>
 
             <div className="flex items-center gap-3">
               <div className="h-14 w-11 rounded-b-2xl rounded-t-md border-2 border-yellow-500 flex flex-col items-center justify-center text-yellow-400 text-xs font-bold">
@@ -379,10 +387,7 @@ export default function ClientPortal() {
               <p className="text-sm text-gray-500">Help guides</p>
             </a>
 
-            <a
-              href="#notifications"
-              className="bg-white rounded-3xl shadow-md p-5"
-            >
+            <a href="#notifications" className="bg-white rounded-3xl shadow-md p-5">
               <div className="w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center text-2xl">
                 🔔
               </div>
@@ -428,9 +433,17 @@ export default function ClientPortal() {
                   <option>Procurement</option>
                   <option>Human Resources</option>
                   <option>ICT Department</option>
+                  <option>Internal Audit</option>
                   <option>Registry</option>
+                  <option>Youth Development</option>
+                  <option>Gender Affairs</option>
+                  <option>Corporate Services</option>
                   <option>Finance</option>
                   <option>Transport & Logistics</option>
+                  <option>Planning</option>
+                  <option>Legal Services</option>
+                  <option>Office of the Permanent Secretary</option>
+                  <option>Minister's Office</option>
                 </select>
 
                 <input
@@ -563,10 +576,7 @@ export default function ClientPortal() {
             <span className="block text-xs">Knowledge</span>
           </a>
 
-          <a
-            href="#notifications"
-            className="text-gray-600 font-bold text-center"
-          >
+          <a href="#notifications" className="text-gray-600 font-bold text-center">
             🔔
             <span className="block text-xs">Alerts</span>
           </a>
