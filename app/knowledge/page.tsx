@@ -1,19 +1,25 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isLoggedIn, getUserRole, logoutUser } from "../../lib/auth";
 import AppHeader from "../../components/AppHeader";
 import BottomNav from "../../components/BottomNav";
 
 export default function KnowledgePage() {
+  const [mounted, setMounted] = useState(false);
+  const [isIT, setIsIT] = useState(false);
+
   useEffect(() => {
     if (!isLoggedIn()) {
       window.location.replace("/login");
+      return;
     }
-  }, []);
 
-  const role = getUserRole();
-  const isIT = role === "IT Officer" || role === "Administrator";
+    const role = getUserRole();
+
+    setIsIT(role === "IT Officer" || role === "Administrator");
+    setMounted(true);
+  }, []);
 
   const guides = [
     {
@@ -47,6 +53,8 @@ export default function KnowledgePage() {
       text: "Contact ICT for locked accounts, no network, failed systems, printer problems, or faulty hardware.",
     },
   ];
+
+  if (!mounted) return null;
 
   return (
     <>
