@@ -16,6 +16,7 @@ import BottomNav from "../../components/BottomNav";
 export default function AdminPage() {
   const [username, setUsername] = useState("");
   const [tickets, setTickets] = useState<any[]>([]);
+  const [filter, setFilter] = useState("All");
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -33,16 +34,28 @@ export default function AdminPage() {
     setUsername(getUsername());
 
     const unsubscribe = onSnapshot(collection(db, "tickets"), (snapshot) => {
-      const ticketData = snapshot.docs.map((item) => ({
-        id: item.id,
-        ...item.data(),
-      }));
+      const ticketData = snapshot.docs
+        .map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }))
+        .sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
 
       setTickets(ticketData);
     });
 
     return () => unsubscribe();
   }, []);
+
+  const filteredTickets =
+    filter === "All"
+      ? tickets
+      : tickets.filter((ticket: any) => ticket.status === filter);
+
+  const pending = tickets.filter((t) => t.status === "Pending").length;
+  const progress = tickets.filter((t) => t.status === "In Progress").length;
+  const resolved = tickets.filter((t) => t.status === "Resolved").length;
+  const critical = tickets.filter((t) => t.priority === "Critical").length;
 
   async function updateStatus(id: string, status: string, ticket: any) {
     try {
@@ -94,14 +107,9 @@ export default function AdminPage() {
     }
   }
 
-  const pending = tickets.filter((t) => t.status === "Pending").length;
-  const progress = tickets.filter((t) => t.status === "In Progress").length;
-  const resolved = tickets.filter((t) => t.status === "Resolved").length;
-
   return (
     <>
-      {/* DESKTOP IT OFFICER VIEW */}
-      <main className="hidden md:flex min-h-screen bg-gray-100">
+      <main className="hidden sm:flex min-h-screen bg-gray-100">
         <div className="w-64 bg-blue-950 text-white min-h-screen p-5">
           <h2 className="text-2xl font-bold mb-8">MYGA ICT</h2>
 
@@ -145,42 +153,56 @@ export default function AdminPage() {
           <div className="bg-blue-700 text-white rounded-2xl p-6 shadow-lg mb-6">
             <h1 className="text-4xl font-bold">ICT Admin Dashboard</h1>
             <p className="mt-2 text-lg">
-              Welcome {username}. Monitor and manage realtime ICT support requests.
+              Welcome {username}. Live tickets are sorted by newest date issued.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white p-5 rounded-2xl shadow-md">
-              <p className="text-gray-500">Total Tickets</p>
+          <div className="grid md:grid-cols-5 gap-4 mb-6">
+            <button onClick={() => setFilter("All")} className="bg-white p-5 rounded-2xl shadow-md text-left">
+              <p className="text-gray-500">Total</p>
               <h2 className="text-3xl font-bold">{tickets.length}</h2>
-            </div>
+            </button>
 
-            <div className="bg-white p-5 rounded-2xl shadow-md">
+            <button onClick={() => setFilter("Pending")} className="bg-white p-5 rounded-2xl shadow-md text-left">
               <p className="text-gray-500">Pending</p>
               <h2 className="text-3xl font-bold text-yellow-600">{pending}</h2>
-            </div>
+            </button>
 
-            <div className="bg-white p-5 rounded-2xl shadow-md">
+            <button onClick={() => setFilter("In Progress")} className="bg-white p-5 rounded-2xl shadow-md text-left">
               <p className="text-gray-500">In Progress</p>
               <h2 className="text-3xl font-bold text-blue-600">{progress}</h2>
-            </div>
+            </button>
 
-            <div className="bg-white p-5 rounded-2xl shadow-md">
+            <button onClick={() => setFilter("Resolved")} className="bg-white p-5 rounded-2xl shadow-md text-left">
               <p className="text-gray-500">Resolved</p>
               <h2 className="text-3xl font-bold text-green-600">{resolved}</h2>
+            </button>
+
+            <div className="bg-white p-5 rounded-2xl shadow-md">
+              <p className="text-gray-500">Critical</p>
+              <h2 className="text-3xl font-bold text-red-600">{critical}</h2>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-4">
-              Live Ticket Management
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">
+                {filter} Live Ticket Management
+              </h2>
 
-            {tickets.length === 0 ? (
-              <p className="text-gray-500">No submitted tickets yet.</p>
+              <button
+                onClick={() => setFilter("All")}
+                className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold"
+              >
+                Show All
+              </button>
+            </div>
+
+            {filteredTickets.length === 0 ? (
+              <p className="text-gray-500">No tickets available.</p>
             ) : (
               <div className="space-y-4">
-                {tickets.map((ticket: any) => (
+                {filteredTickets.map((ticket: any) => (
                   <div key={ticket.id} className="border rounded-2xl p-5">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
@@ -209,7 +231,7 @@ export default function AdminPage() {
 
                           <textarea
                             defaultValue={ticket.feedback || ""}
-                            placeholder="Write feedback or resolution note for the client..."
+                            placeholder="Write feedback or resolution note..."
                             onBlur={(e) =>
                               updateFeedback(ticket.id, e.target.value, ticket)
                             }
@@ -255,8 +277,7 @@ export default function AdminPage() {
         </div>
       </main>
 
-      {/* MOBILE IT OFFICER VIEW ONLY */}
-      <main className="md:hidden min-h-screen bg-slate-50 pb-24">
+      <main className="sm:hidden min-h-screen bg-slate-50 pb-24">
         <AppHeader notificationCount={pending} />
 
         <section className="px-4 py-5">
@@ -268,115 +289,87 @@ export default function AdminPage() {
             </h1>
 
             <p className="text-blue-100 mt-4">
-              Manage ICT tickets, update status, and respond to clients.
+              Newest tickets appear first. Use buttons below to filter.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="bg-white rounded-3xl shadow-md p-5">
+            <button onClick={() => setFilter("All")} className="bg-white rounded-3xl shadow-md p-5 text-left">
               <p className="text-gray-500">Total</p>
               <h2 className="text-3xl font-black">{tickets.length}</h2>
-            </div>
+            </button>
 
-            <div className="bg-white rounded-3xl shadow-md p-5">
+            <button onClick={() => setFilter("Pending")} className="bg-white rounded-3xl shadow-md p-5 text-left">
               <p className="text-gray-500">Pending</p>
               <h2 className="text-3xl font-black text-yellow-600">{pending}</h2>
-            </div>
+            </button>
 
-            <div className="bg-white rounded-3xl shadow-md p-5">
+            <button onClick={() => setFilter("In Progress")} className="bg-white rounded-3xl shadow-md p-5 text-left">
               <p className="text-gray-500">Progress</p>
               <h2 className="text-3xl font-black text-blue-600">{progress}</h2>
-            </div>
+            </button>
 
-            <div className="bg-white rounded-3xl shadow-md p-5">
+            <button onClick={() => setFilter("Resolved")} className="bg-white rounded-3xl shadow-md p-5 text-left">
               <p className="text-gray-500">Resolved</p>
               <h2 className="text-3xl font-black text-green-600">{resolved}</h2>
-            </div>
+            </button>
           </div>
 
           <h2 className="text-xl font-extrabold mt-8 mb-4">
-            Live Ticket Management
+            {filter} Tickets
           </h2>
 
-          {tickets.length === 0 ? (
-            <div className="bg-white rounded-3xl shadow-md p-6 text-gray-500">
-              No submitted tickets yet.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {tickets.map((ticket: any) => (
-                <div key={ticket.id} className="bg-white rounded-3xl shadow-md p-5">
-                  <div className="flex justify-between gap-3">
-                    <div>
-                      <h3 className="font-extrabold text-lg">
-                        {ticket.issueType}
-                      </h3>
+          <div className="space-y-4">
+            {filteredTickets.map((ticket: any) => (
+              <div key={ticket.id} className="bg-white rounded-3xl shadow-md p-5">
+                <h3 className="font-extrabold text-lg">{ticket.issueType}</h3>
 
-                      <p className="text-sm text-gray-500 mt-2">
-                        {ticket.fullName} • {ticket.department}
-                      </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  {ticket.fullName} • {ticket.department}
+                </p>
 
-                      <p className="text-sm text-gray-500">
-                        Office {ticket.officeNumber}
-                      </p>
-                    </div>
+                <p className="text-sm text-gray-500">
+                  Office {ticket.officeNumber}
+                </p>
 
-                    <span
-                      className={`h-fit px-3 py-1 rounded-full text-sm font-bold ${
-                        ticket.status === "Resolved"
-                          ? "bg-green-100 text-green-700"
-                          : ticket.status === "In Progress"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {ticket.status}
-                    </span>
-                  </div>
+                <p className="text-gray-700 mt-4">{ticket.description}</p>
 
-                  <p className="text-gray-700 mt-4">{ticket.description}</p>
+                <select
+                  value={ticket.status}
+                  onChange={(e) =>
+                    updateStatus(ticket.id, e.target.value, ticket)
+                  }
+                  className="w-full border p-3 rounded-2xl mt-4"
+                >
+                  <option>Pending</option>
+                  <option>In Progress</option>
+                  <option>Resolved</option>
+                </select>
 
-                  <div className="grid grid-cols-1 gap-3 mt-4">
-                    <select
-                      value={ticket.status}
-                      onChange={(e) =>
-                        updateStatus(ticket.id, e.target.value, ticket)
-                      }
-                      className="w-full border p-3 rounded-2xl"
-                    >
-                      <option>Pending</option>
-                      <option>In Progress</option>
-                      <option>Resolved</option>
-                    </select>
+                <select
+                  value={ticket.priority}
+                  onChange={(e) => updatePriority(ticket.id, e.target.value)}
+                  className="w-full border p-3 rounded-2xl mt-3"
+                >
+                  <option>Unassigned</option>
+                  <option>Low</option>
+                  <option>Medium</option>
+                  <option>High</option>
+                  <option>Critical</option>
+                </select>
 
-                    <select
-                      value={ticket.priority}
-                      onChange={(e) =>
-                        updatePriority(ticket.id, e.target.value)
-                      }
-                      className="w-full border p-3 rounded-2xl"
-                    >
-                      <option>Unassigned</option>
-                      <option>Low</option>
-                      <option>Medium</option>
-                      <option>High</option>
-                      <option>Critical</option>
-                    </select>
-
-                    <textarea
-                      defaultValue={ticket.feedback || ""}
-                      placeholder="Write feedback to client..."
-                      onBlur={(e) =>
-                        updateFeedback(ticket.id, e.target.value, ticket)
-                      }
-                      className="w-full border p-3 rounded-2xl"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                <textarea
+                  defaultValue={ticket.feedback || ""}
+                  placeholder="Write feedback to client..."
+                  onBlur={(e) =>
+                    updateFeedback(ticket.id, e.target.value, ticket)
+                  }
+                  className="w-full border p-3 rounded-2xl mt-3"
+                  rows={3}
+                />
+              </div>
+            ))}
+          </div>
         </section>
 
         <BottomNav />

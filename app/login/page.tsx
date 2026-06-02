@@ -83,6 +83,16 @@ export default function LoginPage() {
             className="w-full border p-3 rounded-xl"
           />
 
+          <div className="flex justify-between items-center text-sm">
+            <a href="/forgot-password" className="text-blue-700 font-bold">
+              Forgot Password?
+            </a>
+
+            <a href="/register" className="text-blue-700 font-bold">
+              Create Account
+            </a>
+          </div>
+
           <div className="bg-gray-100 rounded-xl p-4 text-sm text-gray-700">
             <h3 className="font-bold mb-2">Terms & Conditions</h3>
 
@@ -115,13 +125,6 @@ export default function LoginPage() {
             Login
           </button>
         </form>
-
-        <p className="text-center text-sm text-gray-600 mt-5">
-          Do not have an account?{" "}
-          <a href="/register" className="text-blue-700 font-bold">
-            Register here
-          </a>
-        </p>
       </div>
     </main>
   );

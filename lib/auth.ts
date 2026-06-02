@@ -30,13 +30,14 @@ export function registerUser(newUser: UserAccount) {
 
   const existingUser = users.find(
     (user) =>
-      user.username.toLowerCase() === newUser.username.toLowerCase()
+      user.username.toLowerCase() === newUser.username.toLowerCase() ||
+      user.email.toLowerCase() === newUser.email.toLowerCase()
   );
 
   if (existingUser) {
     return {
       success: false,
-      message: "Username already exists.",
+      message: "Username or email already exists.",
     };
   }
 
@@ -75,6 +76,29 @@ export function loginUser(username: string, password: string) {
     success: true,
     message: "Login successful.",
     user,
+  };
+}
+
+export function resetPassword(email: string, newPassword: string) {
+  const users = getRegisteredUsers();
+
+  const userIndex = users.findIndex(
+    (user) => user.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (userIndex === -1) {
+    return {
+      success: false,
+      message: "No account found with this email address.",
+    };
+  }
+
+  users[userIndex].password = newPassword;
+  saveRegisteredUsers(users);
+
+  return {
+    success: true,
+    message: "Password reset successfully. You can now login.",
   };
 }
 
