@@ -13,6 +13,8 @@ export default function RegisterPage() {
     role: "Client/User",
   });
 
+  const [loading, setLoading] = useState(false);
+
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) {
@@ -22,7 +24,7 @@ export default function RegisterPage() {
     });
   }
 
-  function handleRegister(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
 
     if (
@@ -30,8 +32,7 @@ export default function RegisterPage() {
       !formData.username ||
       !formData.email ||
       !formData.password ||
-      !formData.confirmPassword ||
-      !formData.role
+      !formData.confirmPassword
     ) {
       alert("Please complete all fields.");
       return;
@@ -42,21 +43,32 @@ export default function RegisterPage() {
       return;
     }
 
-    const result = registerUser({
-      fullName: formData.fullName,
-      username: formData.username,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-    });
+    try {
+      setLoading(true);
 
-    if (!result.success) {
-      alert(result.message);
-      return;
+      await registerUser(
+        formData.fullName,
+        formData.username,
+        formData.email,
+        formData.password,
+        formData.role
+      );
+
+      alert(
+        "Account registered successfully. You can now login."
+      );
+
+      window.location.replace("/login");
+    } catch (error: any) {
+      console.error(error);
+
+      alert(
+        error.message ||
+          "Registration failed."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    alert("Account registered successfully. You can now login.");
-    window.location.replace("/login");
   }
 
   return (
@@ -76,7 +88,10 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form
+          onSubmit={handleRegister}
+          className="space-y-4"
+        >
           <input
             type="text"
             name="fullName"
@@ -135,15 +150,21 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-700 text-white p-3 rounded-xl font-bold hover:bg-blue-800"
+            disabled={loading}
+            className="w-full bg-blue-700 text-white p-3 rounded-xl font-bold hover:bg-blue-800 disabled:bg-gray-400"
           >
-            Register Account
+            {loading
+              ? "Creating Account..."
+              : "Register Account"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-5">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-700 font-bold">
+          <a
+            href="/login"
+            className="text-blue-700 font-bold"
+          >
             Login here
           </a>
         </p>
