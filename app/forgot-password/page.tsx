@@ -5,31 +5,30 @@ import { resetPassword } from "../../lib/auth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleReset(e: React.FormEvent) {
+  async function handleReset(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!email || !newPassword || !confirmPassword) {
-      alert("Please complete all fields.");
+    if (!email) {
+      alert("Please enter your registered email address.");
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      alert("Passwords do not match.");
-      return;
+    try {
+      setLoading(true);
+
+      await resetPassword(email);
+
+      alert("Password reset email sent. Please check your inbox or spam folder.");
+
+      window.location.replace("/login");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || "Failed to send password reset email.");
+    } finally {
+      setLoading(false);
     }
-
-    const result = resetPassword(email, newPassword);
-
-    if (!result.success) {
-      alert(result.message);
-      return;
-    }
-
-    alert(result.message);
-    window.location.replace("/login");
   }
 
   return (
@@ -45,7 +44,7 @@ export default function ForgotPasswordPage() {
           </h1>
 
           <p className="text-gray-500 mt-2">
-            Reset your MYGA ICT Portal password.
+            Enter your registered email address. A password reset link will be sent to your email.
           </p>
         </div>
 
@@ -58,27 +57,12 @@ export default function ForgotPasswordPage() {
             className="w-full border p-3 rounded-xl"
           />
 
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full border p-3 rounded-xl"
-          />
-
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full border p-3 rounded-xl"
-          />
-
           <button
             type="submit"
-            className="w-full bg-blue-700 text-white p-3 rounded-xl font-bold hover:bg-blue-800"
+            disabled={loading}
+            className="w-full bg-blue-700 text-white p-3 rounded-xl font-bold hover:bg-blue-800 disabled:bg-gray-400"
           >
-            Reset Password
+            {loading ? "Sending Reset Email..." : "Send Password Reset Email"}
           </button>
         </form>
 

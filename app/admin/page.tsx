@@ -16,7 +16,6 @@ import BottomNav from "../../components/BottomNav";
 export default function AdminPage() {
   const [username, setUsername] = useState("");
   const [tickets, setTickets] = useState<any[]>([]);
-  const [filter, setFilter] = useState("All");
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -34,28 +33,16 @@ export default function AdminPage() {
     setUsername(getUsername());
 
     const unsubscribe = onSnapshot(collection(db, "tickets"), (snapshot) => {
-      const ticketData = snapshot.docs
-        .map((item) => ({
-          id: item.id,
-          ...item.data(),
-        }))
-        .sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+      const ticketData = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
 
       setTickets(ticketData);
     });
 
     return () => unsubscribe();
   }, []);
-
-  const filteredTickets =
-    filter === "All"
-      ? tickets
-      : tickets.filter((ticket: any) => ticket.status === filter);
-
-  const pending = tickets.filter((t) => t.status === "Pending").length;
-  const progress = tickets.filter((t) => t.status === "In Progress").length;
-  const resolved = tickets.filter((t) => t.status === "Resolved").length;
-  const critical = tickets.filter((t) => t.priority === "Critical").length;
 
   async function updateStatus(id: string, status: string, ticket: any) {
     try {
@@ -107,8 +94,13 @@ export default function AdminPage() {
     }
   }
 
+  const pending = tickets.filter((t) => t.status === "Pending").length;
+  const progress = tickets.filter((t) => t.status === "In Progress").length;
+  const resolved = tickets.filter((t) => t.status === "Resolved").length;
+
   return (
     <>
+      {/* DESKTOP VIEW */}
       <main className="hidden sm:flex min-h-screen bg-gray-100">
         <div className="w-64 bg-blue-950 text-white min-h-screen p-5">
           <h2 className="text-2xl font-bold mb-8">MYGA ICT</h2>
@@ -153,56 +145,42 @@ export default function AdminPage() {
           <div className="bg-blue-700 text-white rounded-2xl p-6 shadow-lg mb-6">
             <h1 className="text-4xl font-bold">ICT Admin Dashboard</h1>
             <p className="mt-2 text-lg">
-              Welcome {username}. Live tickets are sorted by newest date issued.
+              Welcome {username}. Monitor and manage realtime ICT support requests.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-5 gap-4 mb-6">
-            <button onClick={() => setFilter("All")} className="bg-white p-5 rounded-2xl shadow-md text-left">
-              <p className="text-gray-500">Total</p>
+          <div className="grid md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white p-5 rounded-2xl shadow-md">
+              <p className="text-gray-500">Total Tickets</p>
               <h2 className="text-3xl font-bold">{tickets.length}</h2>
-            </button>
-
-            <button onClick={() => setFilter("Pending")} className="bg-white p-5 rounded-2xl shadow-md text-left">
-              <p className="text-gray-500">Pending</p>
-              <h2 className="text-3xl font-bold text-yellow-600">{pending}</h2>
-            </button>
-
-            <button onClick={() => setFilter("In Progress")} className="bg-white p-5 rounded-2xl shadow-md text-left">
-              <p className="text-gray-500">In Progress</p>
-              <h2 className="text-3xl font-bold text-blue-600">{progress}</h2>
-            </button>
-
-            <button onClick={() => setFilter("Resolved")} className="bg-white p-5 rounded-2xl shadow-md text-left">
-              <p className="text-gray-500">Resolved</p>
-              <h2 className="text-3xl font-bold text-green-600">{resolved}</h2>
-            </button>
+            </div>
 
             <div className="bg-white p-5 rounded-2xl shadow-md">
-              <p className="text-gray-500">Critical</p>
-              <h2 className="text-3xl font-bold text-red-600">{critical}</h2>
+              <p className="text-gray-500">Pending</p>
+              <h2 className="text-3xl font-bold text-yellow-600">{pending}</h2>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl shadow-md">
+              <p className="text-gray-500">In Progress</p>
+              <h2 className="text-3xl font-bold text-blue-600">{progress}</h2>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl shadow-md">
+              <p className="text-gray-500">Resolved</p>
+              <h2 className="text-3xl font-bold text-green-600">{resolved}</h2>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">
-                {filter} Live Ticket Management
-              </h2>
+            <h2 className="text-2xl font-semibold mb-4">
+              Live Ticket Management
+            </h2>
 
-              <button
-                onClick={() => setFilter("All")}
-                className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold"
-              >
-                Show All
-              </button>
-            </div>
-
-            {filteredTickets.length === 0 ? (
-              <p className="text-gray-500">No tickets available.</p>
+            {tickets.length === 0 ? (
+              <p className="text-gray-500">No submitted tickets yet.</p>
             ) : (
               <div className="space-y-4">
-                {filteredTickets.map((ticket: any) => (
+                {tickets.map((ticket: any) => (
                   <div key={ticket.id} className="border rounded-2xl p-5">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
@@ -277,6 +255,7 @@ export default function AdminPage() {
         </div>
       </main>
 
+      {/* PHONE VIEW ONLY */}
       <main className="sm:hidden min-h-screen bg-slate-50 pb-24">
         <AppHeader notificationCount={pending} />
 
@@ -289,38 +268,38 @@ export default function AdminPage() {
             </h1>
 
             <p className="text-blue-100 mt-4">
-              Newest tickets appear first. Use buttons below to filter.
+              Manage ICT tickets, update status, and respond to clients.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-6">
-            <button onClick={() => setFilter("All")} className="bg-white rounded-3xl shadow-md p-5 text-left">
+            <div className="bg-white rounded-3xl shadow-md p-5">
               <p className="text-gray-500">Total</p>
               <h2 className="text-3xl font-black">{tickets.length}</h2>
-            </button>
+            </div>
 
-            <button onClick={() => setFilter("Pending")} className="bg-white rounded-3xl shadow-md p-5 text-left">
+            <div className="bg-white rounded-3xl shadow-md p-5">
               <p className="text-gray-500">Pending</p>
               <h2 className="text-3xl font-black text-yellow-600">{pending}</h2>
-            </button>
+            </div>
 
-            <button onClick={() => setFilter("In Progress")} className="bg-white rounded-3xl shadow-md p-5 text-left">
+            <div className="bg-white rounded-3xl shadow-md p-5">
               <p className="text-gray-500">Progress</p>
               <h2 className="text-3xl font-black text-blue-600">{progress}</h2>
-            </button>
+            </div>
 
-            <button onClick={() => setFilter("Resolved")} className="bg-white rounded-3xl shadow-md p-5 text-left">
+            <div className="bg-white rounded-3xl shadow-md p-5">
               <p className="text-gray-500">Resolved</p>
               <h2 className="text-3xl font-black text-green-600">{resolved}</h2>
-            </button>
+            </div>
           </div>
 
           <h2 className="text-xl font-extrabold mt-8 mb-4">
-            {filter} Tickets
+            Live Ticket Management
           </h2>
 
           <div className="space-y-4">
-            {filteredTickets.map((ticket: any) => (
+            {tickets.map((ticket: any) => (
               <div key={ticket.id} className="bg-white rounded-3xl shadow-md p-5">
                 <h3 className="font-extrabold text-lg">{ticket.issueType}</h3>
 
@@ -348,7 +327,9 @@ export default function AdminPage() {
 
                 <select
                   value={ticket.priority}
-                  onChange={(e) => updatePriority(ticket.id, e.target.value)}
+                  onChange={(e) =>
+                    updatePriority(ticket.id, e.target.value)
+                  }
                   className="w-full border p-3 rounded-2xl mt-3"
                 >
                   <option>Unassigned</option>

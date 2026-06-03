@@ -1,105 +1,69 @@
-export type UserAccount = {
-  fullName: string;
-  username: string;
-  password: string;
-  role: string;
-  email: string;
-};
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+} from "firebase/auth";
 
-export function getRegisteredUsers(): UserAccount[] {
-  if (typeof window === "undefined") return [];
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
 
-  const users = localStorage.getItem("registeredUsers");
-
-  if (!users) return [];
-
-  try {
-    return JSON.parse(users);
-  } catch {
-    return [];
-  }
-}
-
-export function saveRegisteredUsers(users: UserAccount[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("registeredUsers", JSON.stringify(users));
-}
-
-export function registerUser(newUser: UserAccount) {
-  const users = getRegisteredUsers();
-
-  const existingUser = users.find(
-    (user) =>
-      user.username.toLowerCase() === newUser.username.toLowerCase() ||
-      user.email.toLowerCase() === newUser.email.toLowerCase()
+export async function registerUser(
+  fullName: string,
+  username: string,
+  email: string,
+  password: string,
+  role: string
+) {
+  const userCredential = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
   );
 
-  if (existingUser) {
-    return {
-      success: false,
-      message: "Username or email already exists.",
-    };
-  }
+  const user = userCredential.user;
 
-  users.push(newUser);
-  saveRegisteredUsers(users);
+  await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
+    fullName,
+    username,
+    email,
+    role,
+    createdAt: Date.now(),
+  });
 
-  return {
-    success: true,
-    message: "Account registered successfully.",
-  };
+  return user;
 }
 
-export function loginUser(username: string, password: string) {
-  const users = getRegisteredUsers();
-
-  const user = users.find(
-    (item) =>
-      item.username.toLowerCase() === username.toLowerCase() &&
-      item.password === password
+export async function loginUser(email: string, password: string) {
+  const userCredential = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
   );
 
-  if (!user) {
-    return {
-      success: false,
-      message: "Invalid username or password.",
-    };
+  const user = userCredential.user;
+
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+
+  if (!userDoc.exists()) {
+    throw new Error("User profile not found.");
   }
+
+  const userData: any = userDoc.data();
 
   localStorage.setItem("isLoggedIn", "true");
-  localStorage.setItem("username", user.username);
-  localStorage.setItem("role", user.role);
-  localStorage.setItem("email", user.email);
-  localStorage.setItem("fullName", user.fullName);
+  localStorage.setItem("uid", user.uid);
+  localStorage.setItem("username", userData.username);
+  localStorage.setItem("fullName", userData.fullName);
+  localStorage.setItem("email", userData.email);
+  localStorage.setItem("role", userData.role);
 
-  return {
-    success: true,
-    message: "Login successful.",
-    user,
-  };
+  return userData;
 }
 
-export function resetPassword(email: string, newPassword: string) {
-  const users = getRegisteredUsers();
-
-  const userIndex = users.findIndex(
-    (user) => user.email.toLowerCase() === email.toLowerCase()
-  );
-
-  if (userIndex === -1) {
-    return {
-      success: false,
-      message: "No account found with this email address.",
-    };
-  }
-
-  users[userIndex].password = newPassword;
-  saveRegisteredUsers(users);
-
-  return {
-    success: true,
-    message: "Password reset successfully. You can now login.",
-  };
+export async function resetPassword(email: string) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 export function isLoggedIn() {
@@ -127,12 +91,15 @@ export function getUserEmail() {
   return localStorage.getItem("email") || "";
 }
 
-export function logoutUser() {
+export async function logoutUser() {
+  await signOut(auth);
+
   localStorage.removeItem("isLoggedIn");
+  localStorage.removeItem("uid");
   localStorage.removeItem("username");
-  localStorage.removeItem("role");
-  localStorage.removeItem("email");
   localStorage.removeItem("fullName");
+  localStorage.removeItem("email");
+  localStorage.removeItem("role");
 
   window.location.replace("/login");
 }
