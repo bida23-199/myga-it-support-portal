@@ -5,11 +5,12 @@ import { loginUser } from "../../lib/auth";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
   const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormData({
@@ -18,11 +19,11 @@ export default function LoginPage() {
     });
   }
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!formData.username || !formData.password) {
-      alert("Please enter username and password.");
+    if (!formData.email || !formData.password) {
+      alert("Please enter email and password.");
       return;
     }
 
@@ -31,19 +32,23 @@ export default function LoginPage() {
       return;
     }
 
-    const result = loginUser(formData.username, formData.password);
+    try {
+      setLoading(true);
 
-    if (!result.success) {
-      alert(result.message);
-      return;
-    }
+      const result = await loginUser(formData.email, formData.password);
 
-    const role = result.user?.role;
+      const role = result?.role;
 
-    if (role === "IT Officer" || role === "Administrator") {
-      window.location.replace("/admin");
-    } else {
-      window.location.replace("/");
+      if (role === "IT Officer" || role === "Administrator") {
+        window.location.replace("/admin");
+      } else {
+        window.location.replace("/");
+      }
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || "Invalid email or password.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -66,10 +71,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
             onChange={handleChange}
             className="w-full border p-3 rounded-xl"
           />
@@ -120,9 +125,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-700 text-white p-3 rounded-xl font-bold hover:bg-blue-800"
+            disabled={loading}
+            className="w-full bg-blue-700 text-white p-3 rounded-xl font-bold hover:bg-blue-800 disabled:bg-gray-400"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
